@@ -30,6 +30,10 @@ struct KeyServerData {
   /* for each service type */
   version_t rotating_ver;
   std::map<uint32_t, RotatingSecrets> rotating_secrets;
+  KeyServerData() 
+    : version(0), 
+      extra_secrets(nullptr), 
+      rotating_ver(0) {}
 
   explicit KeyServerData(KeyRing *extra)
     : version(0),
@@ -70,7 +74,27 @@ struct KeyServerData {
     decode(rotating_ver, iter);
     decode(rotating_secrets, iter);
   }
-
+  void dump(ceph::Formatter *f) const {
+    f->dump_unsigned("version", version);
+    f->dump_unsigned("rotating_version", rotating_ver);
+    f->open_array_section("secrets");
+    for (auto& i : secrets) {
+      f->open_object_section("secret");
+      f->dump_object("service", i.first);
+      f->dump_object("auth", i.second);
+      f->close_section();
+    }
+    f->close_section();
+    f->open_array_section("rotating_secrets");
+    for (auto& i : rotating_secrets) {
+      f->open_object_section("service");
+      f->dump_unsigned("service_id", i.first);
+      f->dump_object("secrets", i.second);
+      f->close_section();
+    }
+    f->close_section();
+  }
+  static void generate_test_instances(std::list<KeyServerData*>& ls);
   bool contains(const EntityName& name) const {
     return (secrets.find(name) != secrets.end());
   }
@@ -159,8 +183,20 @@ struct KeyServerData {
 	decode(auth, bl);
       }
     }
+    void dump(ceph::Formatter *f) const {
+      f->dump_unsigned("op", op);
+      f->dump_object("name", name);
+      f->dump_object("auth", auth);
+    }
+    static void generate_test_instances(std::list<Incremental*>& ls) {
+      ls.push_back(new Incremental);
+      ls.push_back(new Incremental);
+      ls.back()->op = AUTH_INC_ADD;
+      ls.push_back(new Incremental);
+      ls.back()->op = AUTH_INC_SET_ROTATING;
+    }
   };
-
+  
   void apply_incremental(Incremental& inc) {
     switch (inc.op) {
     case AUTH_INC_ADD:
@@ -205,6 +241,7 @@ class KeyServer : public KeyStore {
   bool _get_service_caps(const EntityName& name, uint32_t service_id,
 	AuthCapsInfo& caps) const;
 public:
+  KeyServer() {}
   KeyServer(CephContext *cct_, KeyRing *extra_secrets);
   bool generate_secret(CryptoKey& secret);
 
@@ -248,6 +285,8 @@ public:
     using ceph::decode;
     decode(data, bl);
   }
+  void dump(ceph::Formatter *f) const;
+  static void generate_test_instances(std::list<KeyServer*>& ls);
   bool contains(const EntityName& name) const;
   int encode_secrets(ceph::Formatter *f, std::stringstream *ds) const;
   void encode_formatted(std::string label, ceph::Formatter *f, ceph::buffer::list &bl);

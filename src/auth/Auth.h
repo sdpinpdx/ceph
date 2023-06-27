@@ -59,6 +59,16 @@ struct EntityAuth {
       decode(pending_key, bl);
     }
   }
+  void dump(ceph::Formatter *f) const {
+    f->dump_object("key", key);
+    for (auto p = caps.begin(); p != caps.end(); ++p) {
+      f->dump_string("cap", p->first);
+    }
+    f->dump_object("pending_key", pending_key);
+  }
+  static void generate_test_instances(std::list<EntityAuth*>& ls) {
+    ls.push_back(new EntityAuth);
+  }
 };
 WRITE_CLASS_ENCODER(EntityAuth)
 
@@ -94,6 +104,21 @@ struct AuthCapsInfo {
     decode(a, bl);
     allow_all = (bool)a;
     decode(caps, bl);
+  }
+  void dump(ceph::Formatter *f) const {
+    f->dump_bool("allow_all", allow_all);
+    for (auto p = caps.begin(); !p.end(); ++p) {
+      f->dump_unsigned("cap", *p);
+    }
+    f->dump_unsigned("caps_len", caps.length());
+  }
+  static void generate_test_instances(std::list<AuthCapsInfo*>& ls) {
+    ls.push_back(new AuthCapsInfo);
+    ls.push_back(new AuthCapsInfo);
+    ls.back()->allow_all = true;
+    ls.push_back(new AuthCapsInfo);
+    ls.back()->caps.append("foo");
+    ls.back()->caps.append("bar");
   }
 };
 WRITE_CLASS_ENCODER(AuthCapsInfo)
@@ -146,6 +171,25 @@ struct AuthTicket {
     decode(expires, bl);
     decode(caps, bl);
     decode(flags, bl);
+  }
+  void dump(ceph::Formatter *f) const {
+    f->dump_object("name", name);
+    f->dump_unsigned("global_id", global_id);
+    f->dump_stream("created") << created;
+    f->dump_stream("renew_after") << renew_after;
+    f->dump_stream("expires") << expires;
+    f->dump_object("caps", caps);
+    f->dump_unsigned("flags", flags);
+  }
+  static void generate_test_instances(std::list<AuthTicket*>& ls) {
+    ls.push_back(new AuthTicket);
+    ls.push_back(new AuthTicket);
+    ls.back()->name.set_id("client.123");
+    ls.back()->global_id = 123;
+    ls.back()->init_timestamps(utime_t(123, 456), 7);
+    ls.back()->caps.caps.append("foo");
+    ls.back()->caps.caps.append("bar");
+    ls.back()->flags = 0x12345678;
   }
 };
 WRITE_CLASS_ENCODER(AuthTicket)
@@ -231,6 +275,16 @@ struct ExpiringCryptoKey {
     decode(key, bl);
     decode(expiration, bl);
   }
+  void dump(ceph::Formatter *f) const {
+    f->dump_object("key", key);
+    f->dump_stream("expiration") << expiration;
+  }
+  static void generate_test_instances(std::list<ExpiringCryptoKey*>& ls) {
+    ls.push_back(new ExpiringCryptoKey);
+    ls.push_back(new ExpiringCryptoKey);
+    ls.back()->key.set_secret(CEPH_CRYPTO_AES, bufferptr("1234567890123456", 16),
+      utime_t(123, 456));
+  }
 };
 WRITE_CLASS_ENCODER(ExpiringCryptoKey)
 
@@ -295,6 +349,23 @@ struct RotatingSecrets {
   }
 
   void dump();
+  void dump(ceph::Formatter *f) const {
+    f->open_array_section("secrets");
+    for (auto& p : secrets) {
+      f->open_object_section("secret");
+      f->dump_unsigned("ver", p.first);
+      p.second.dump(f);
+      f->close_section();
+    }
+    f->close_section();
+  }
+  static void generate_test_instances(std::list<RotatingSecrets*>& ls) {
+    ls.push_back(new RotatingSecrets);
+    ls.push_back(new RotatingSecrets);
+    ls.back()->add(ls.front()->current());
+    ls.back()->add(ls.front()->next());
+    ls.back()->add(ls.front()->previous());
+  }
 };
 WRITE_CLASS_ENCODER(RotatingSecrets)
 

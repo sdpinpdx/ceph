@@ -29,6 +29,11 @@ using ceph::bufferptr;
 using ceph::bufferlist;
 using ceph::Formatter;
 
+void KeyServerData::generate_test_instances(std::list<KeyServerData*>& ls)
+{
+  ls.push_back(new KeyServerData);
+}
+
 bool KeyServerData::get_service_secret(CephContext *cct, uint32_t service_id,
 				       CryptoKey& secret, uint64_t& secret_id,
 				       double& ttl) const
@@ -255,6 +260,16 @@ std::map<EntityName,CryptoKey> KeyServer::get_used_pending_keys()
   std::scoped_lock l(lock);
   ret.swap(used_pending_keys);
   return ret;
+}
+
+void KeyServer::dump(Formatter *f) const
+{
+  f->dump_object("data", data);
+}
+
+void KeyServer::generate_test_instances(std::list<KeyServer*>& ls)
+{
+  ls.push_back(new KeyServer(nullptr, nullptr));
 }
 
 bool KeyServer::generate_secret(CryptoKey& secret)
