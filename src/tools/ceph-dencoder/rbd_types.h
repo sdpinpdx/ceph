@@ -3,13 +3,26 @@
 TYPE(librbd::journal::EventEntry)
 TYPE(librbd::journal::ClientData)
 TYPE(librbd::journal::TagData)
+using namespace librbd::journal;
+TYPE(EventEntry)
+TYPE(ClientData)
+TYPE(TagData)
+
 #include "librbd/mirroring_watcher/Types.h"
 TYPE(librbd::mirroring_watcher::NotifyMessage)
 #include "librbd/trash_watcher/Types.h"
 TYPE(librbd::trash_watcher::NotifyMessage)
 #include "librbd/WatchNotifyTypes.h"
 TYPE_NOCOPY(librbd::watch_notify::NotifyMessage)
+TYPE(librbd::watch_notify::AsyncRequestId)
 TYPE(librbd::watch_notify::ResponseMessage)
+using namespace librbd::watch_notify;
+TYPE_NOCOPY(NotifyMessage)
+TYPE(ResponseMessage)
+TYPE(AsyncRequestId)
+
+#include "librbd/watcher/Types.h"
+TYPE(ClientId)
 
 #include "rbd_replay/ActionTypes.h"
 TYPE(rbd_replay::action::Dependency)
@@ -49,4 +62,22 @@ TYPE(cls::rbd::GroupSpec)
 TYPE(cls::rbd::ImageSnapshotSpec)
 TYPE(cls::rbd::SnapshotInfo)
 TYPE(cls::rbd::SnapshotNamespace)
+using namespace cls::rbd;
+TYPE(ParentImageSpec)
+TYPE(ChildImageSpec)
+TYPE(MigrationSpec)
+TYPE(MirrorPeer)
+TYPE(MirrorImage)
+TYPE(MirrorImageMap)
+TYPE(MirrorImageStatus)
+TYPE(MirrorImageSiteStatus)
+TYPE_FEATUREFUL(MirrorImageSiteStatusOnDisk)
+TYPE(GroupImageSpec)
+TYPE(GroupImageStatus)
+TYPE(GroupSnapshot)
+TYPE(GroupSpec)
+TYPE(ImageSnapshotSpec)
+TYPE(SnapshotInfo)
+TYPE(SnapshotNamespace)
+TYPE(TrashImageSpec)
 #endif

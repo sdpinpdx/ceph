@@ -36,6 +36,7 @@ struct AsyncRequestId {
   void encode(bufferlist& bl) const;
   void decode(bufferlist::const_iterator& it);
   void dump(Formatter *f) const;
+  static void generate_test_instances(std::list<AsyncRequestId*>& ls);
 
   inline bool operator<(const AsyncRequestId &rhs) const {
     if (client_id != rhs.client_id) {
