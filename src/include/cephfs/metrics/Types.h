@@ -688,6 +688,19 @@ public:
     apply_visitor(DumpPayloadVisitor(f), payload);
   }
 
+  static void generate_test_instances(std::list<ClientMetricMessage*>& ls) {
+    ls.push_back(new ClientMetricMessage(CapInfoPayload()));
+    ls.push_back(new ClientMetricMessage(ReadLatencyPayload()));
+    ls.push_back(new ClientMetricMessage(WriteLatencyPayload()));
+    ls.push_back(new ClientMetricMessage(MetadataLatencyPayload()));
+    ls.push_back(new ClientMetricMessage(DentryLeasePayload()));
+    ls.push_back(new ClientMetricMessage(OpenedFilesPayload()));
+    ls.push_back(new ClientMetricMessage(PinnedIcapsPayload()));
+    ls.push_back(new ClientMetricMessage(OpenedInodesPayload()));
+    ls.push_back(new ClientMetricMessage(ReadIoSizesPayload()));
+    ls.push_back(new ClientMetricMessage(WriteIoSizesPayload()));
+  }
+
   void print(std::ostream *out) const {
     apply_visitor(PrintPayloadVisitor(out), payload);
   }

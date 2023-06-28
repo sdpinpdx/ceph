@@ -144,7 +144,21 @@ struct MDSHealthMetric
     decode(metadata, bl);
     DECODE_FINISH(bl);
   }
-
+  void dump(ceph::Formatter *f) const {
+    f->dump_stream("type") << mds_metric_name(type);
+    f->dump_stream("sev") << sev;
+    f->dump_string("message", message);
+    f->dump_stream("metadata") << metadata;
+  }
+  static void generate_test_instances(std::list<MDSHealthMetric*>& ls) {
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_TRIM, HEALTH_OK, ""));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_TRIM, HEALTH_WARN, "trim"));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_CLIENT_RECALL, HEALTH_WARN, "recall"));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_CLIENT_LATE_RELEASE, HEALTH_ERR, "late release"));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_CLIENT_RECALL_MANY, HEALTH_WARN, "recall many"));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_CLIENT_LATE_RELEASE_MANY, HEALTH_ERR, "late release many"));
+    ls.push_back(new MDSHealthMetric(MDS_HEALTH_CLIENT_OLDEST_TID, HEALTH_OK, "oldest tid"));
+  }
   bool operator==(MDSHealthMetric const &other) const
   {
     return (type == other.type && sev == other.sev && message == other.message);
@@ -177,6 +191,24 @@ struct MDSHealth
     DECODE_FINISH(bl);
   }
 
+  void dump(ceph::Formatter *f) const {
+    f->open_array_section("metrics");
+    for (const auto &metric : metrics) {
+      f->dump_object("metric", metric);
+    }
+    f->close_section();
+  }
+  static void generate_test_instances(std::list<MDSHealth*>& ls) {
+    ls.push_back(new MDSHealth());
+    ls.push_back(new MDSHealth());
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_TRIM, HEALTH_OK, ""));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_TRIM, HEALTH_WARN, "trim"));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_CLIENT_RECALL, HEALTH_WARN, "recall"));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_CLIENT_LATE_RELEASE, HEALTH_ERR, "late release"));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_CLIENT_RECALL_MANY, HEALTH_WARN, "recall many"));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_CLIENT_LATE_RELEASE_MANY, HEALTH_ERR, "late release many"));
+    ls.back()->metrics.push_back(MDSHealthMetric(MDS_HEALTH_CLIENT_OLDEST_TID, HEALTH_OK, "oldest tid"));
+  }
   bool operator==(MDSHealth const &other) const
   {
     return metrics == other.metrics;
